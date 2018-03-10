@@ -1,0 +1,285 @@
+<html>
+<head>
+    <title>患教文章</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <script type="text/javascript" charset="utf-8" src="jquery-1.9.1.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+      <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.css">
+	  <script src="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+
+<!-- Latest compiled and minified Locales -->
+<script src="https://cdn.bootcss.com/bootstrap-table/1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+      <link rel="stylesheet" href="https://cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.css" />  
+        <script type="text/javascript" src="https://cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.js"></script>
+    <script src="./vue.min.js"></script>
+    <script src="./index.js"></script>
+    <script src="./underscore-min.js"></script>
+</head>
+<body>
+ <h1 style="text-align:center">患教文章列表</h1>
+
+<div class="container-fluid">
+ <span class="toolbar">
+            <a class="create btn btn-default" href="/wenzhang/addPCArticle.html">添加</a>
+</span>
+<table id="tableArticle" data-toggle="table" data-url="/getListByPageGeneral.action?accountId=-1&page=1&rows=1000"
+	data-pagination="true" data-show-refresh="true"  data-response-handler="resHandler"
+	  data-page-size="15"
+	data-height="600"  data-click-to-select="true" data-toolbar=".toolbar">
+    <thead>
+        <tr>
+            <th data-field="articleName">文章标题</th>
+           <th data-field="createTime">时间</th>
+           <th data-field="action"
+                    data-align="center"
+                    data-formatter="actionFormatter"
+		data-events="actionEvents">操作</th>
+        </tr>
+    </thead>
+</table>
+<!--模态框-->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">请选择所属科室(可多选)</h4>
+      </div>
+      <div class="modal-body">
+	  <div class="panel panel-default" v-for="(item,index1) in data.datas">
+		<div class="panel-heading">{{item.name}} </div>
+		<div class="panel-body">
+			<ul class="list-group">
+				     <li v-for="subitem in item.children" :key="subitem.id" class="list-group-item">
+                        <label   :for="'checkbox'+subitem.id"> {{subitem.name}}</label >
+                         <input type="checkbox" :id="'checkbox'+subitem.id" :value="subitem.id" v-model="data.resultDatas" >
+                     </li>
+			</ul>
+		</div>
+	  </div>
+
+		
+		
+		
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button type="button"  @click.stop="submitbtn"  class="btn btn-primary">保存</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+ 
+</div>
+<script>
+	function GetQueryString(name)
+    {//获取url参数
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)
+            return  unescape(r[2]); return null;
+    }
+   
+    var accountId=GetQueryString("accountId");
+	//followuparticle/findListByPage.action?accountId=-1&page='+that.page+'&rows='+that.rows+'&sort='+that.sort+'&articleName='+that.searchKey
+    function resHandler(res)
+	{
+		var newRes =res.datas;
+		return newRes;
+	
+	}
+	 function actionFormatter(value) {
+        return [
+            '<a class="update" href="javascript:" title="编辑">编辑&nbsp;&nbsp;&nbsp;&nbsp;</a>',
+            '<a class="remove" href="javascript:" title="删除 ">删除&nbsp;&nbsp;&nbsp;&nbsp;</a>',
+            '<a class="bind" href="javascript:" title="绑定">绑定</a>',
+        ].join('');
+    }
+    function getCurrentIdDepartment(id)
+    {
+        $.ajax({
+            url: "/findByIdForWeb.action?id="+id,
+            type: "get",
+            dataType: 'json',
+            async:false,
+            success: function (data) {
+                if(data.code==0)
+                {
+                    var datas = data.followupArticle;
+                    var newArry=[];
+                    if(datas.departmentList.length>0)
+                    {
+                       for(var i in datas.departmentList)
+                        newArry.push(datas.departmentList[i].departmentId);
+                    }
+
+                    vue.$set( vue.$data.data,'resultDatas',newArry);
+
+                }
+                else
+                {
+                    swal({
+                        title: "温馨提示",
+                        text: ""+data.msg,
+                        showConfirmButton: false,
+                        timer: 2000
+                    })
+                }
+            },
+            error: function (e) {
+                swal({
+                    title: "温馨提示",
+                    text: "网络错误",
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+            }
+        });
+    }
+    // update and delete events
+    window.actionEvents = {
+	 'click .bind': function (e, value, row) {
+	   //  console.log("fsdf");
+         getCurrentIdDepartment(row.id);
+              vue.$set( vue.$data.data,'datas',departments);
+              vue.$set( vue.$data.data,'currentId',row.id);
+              console.log(vue.$data.data);
+           $('#myModal').modal('show');
+
+        },
+       'click .update': function (e, value, row) {
+                    window.location.href="/wenzhang/editPCArticle.html?id="+row.id;
+        },
+        'click .remove': function (e, value, row) {
+            if (confirm('你确定要删除么?')) {
+                $.ajax({
+                    url: '/delForWeb.action?id=' + row.id,
+                    type: 'post',
+                    success: function () {
+                        $('#tableArticle').bootstrapTable('refresh');
+                        swal({  
+            title: "温馨提示",  
+            text: "删除成功",  
+            showConfirmButton: false,  
+            timer: 2000  
+				})  
+                    },
+                    error: function () {
+                       swal({  
+            title: "温馨提示",  
+            text: "网络错误",  
+            showConfirmButton: false,  
+            timer: 2000  
+				})  
+                    }
+                })
+            }
+        }
+    };
+    var departments =[];
+    function initDepartment()
+    {
+        $.ajax({
+            url: "/findListAll.action",
+            type: "get",
+            dataType: 'json',
+            async:false,
+            success: function (data) {
+                if(data.code==0)
+                {
+                   var datas = data.datas;
+                    departments= datas;
+                }
+                else
+                {
+                    swal({
+                        title: "温馨提示",
+                        text: ""+data.msg,
+                        showConfirmButton: false,
+                        timer: 2000
+                    })
+                }
+            },
+            error: function (e) {
+                swal({
+                    title: "温馨提示",
+                    text: "网络错误",
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+            }
+        });
+    }
+  $(document).ready(function () {
+      initDepartment();
+	  
+        });
+	 var vue = new Vue({
+         el: '#myModal',
+         data: {data:{
+             currentId:'',
+             datas:[],
+             resultDatas:[]
+         }},
+         methods:{
+             submitbtn:function()
+             {
+                 if(this.data.resultDatas.length >-1)
+                 {
+                     var currentId =this.data.currentId;
+                     var departmentIds=this.data.resultDatas.join(',');
+
+                     $.ajax({
+                         url: "/add.action",
+                         type: "post",
+                         data:{
+                             departmentIds:departmentIds,
+                             articleId  :currentId
+                         },
+                         dataType: 'json',
+                         async:false,
+                         success: function (data) {
+                                if(data.code == 0)
+                                {
+                                    $('#myModal').modal('hide');
+                                }
+
+                                 swal({
+                                     title: "温馨提示",
+                                     text: ""+data.msg,
+                                     showConfirmButton: false,
+                                     timer: 2000
+                                 })
+                         },
+                         error: function (e) {
+                             swal({
+                                 title: "温馨提示",
+                                 text: "网络错误",
+                                 showConfirmButton: false,
+                                 timer: 2000
+                             })
+                         }
+                     });
+                 }
+                 else
+                 {
+                     swal({
+                         title: "温馨提示",
+                         text: "没有选择任何项，请选择后，再提交。",
+                         showConfirmButton: false,
+                         timer: 2000
+                     })
+                 }
+             }
+         },
+     });
+</script>
+</body>
+</html>

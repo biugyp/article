@@ -1,0 +1,113 @@
+<html>
+<head>
+    <title>患教文章添加</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <script type="text/javascript" charset="utf-8" src="jquery-1.9.1.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+      <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.css">
+	  <script src="https://cdn.bootcss.com/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+
+<!-- Latest compiled and minified Locales -->
+<script src="https://cdn.bootcss.com/bootstrap-table/1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+      <link rel="stylesheet" href="https://cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.css" />  
+        <script type="text/javascript" src="https://cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.js"></script>  
+</head>
+<body>
+ <h1 style="text-align:center">患教文章列表</h1>
+
+<div class="container-fluid">
+ <span class="toolbar">
+            <a class="create btn btn-default" href="/wenzhang/addPCArticle.html">添加</a>
+</span>
+<table id="tableArticle" data-toggle="table" data-url="/getListByPageGeneral.action?accountId=-1&page=1&rows=1000"
+	data-pagination="true" data-show-refresh="true"  data-response-handler="resHandler"
+	  data-page-size="15"
+	data-height="600"  data-click-to-select="true" data-toolbar=".toolbar">
+    <thead>
+        <tr>
+            
+            <th data-field="majorDepartmentName">一级科室</th>
+            <th data-field="departmentName">二级科室</th>
+            <th data-field="articleName">文章标题</th>
+            <th data-field="createTime">时间</th>
+           <th data-field="action"
+                    data-align="center"
+                    data-formatter="actionFormatter"
+		data-events="actionEvents">操作</th>
+        </tr>
+    </thead>
+</table>
+
+ 
+</div>
+<script>
+	function GetQueryString(name)
+    {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)
+            return  unescape(r[2]); return null;
+    }
+   
+    var accountId=GetQueryString("accountId");
+	//followuparticle/findListByPage.action?accountId=-1&page='+that.page+'&rows='+that.rows+'&sort='+that.sort+'&articleName='+that.searchKey
+    function resHandler(res)
+	{
+		var newRes =res.datas;
+		return newRes;
+	
+	}
+	 function actionFormatter(value) {
+        return [
+            '<a class="update" href="javascript:" title="编辑"><i class="glyphicon glyphicon-edit"></i>&nbsp;&nbsp;&nbsp;&nbsp;</a>',
+            '<a class="remove" href="javascript:" title="删除 Item"><i class="glyphicon glyphicon-remove-circle"></i></a>',
+        ].join('');
+    }
+    // update and delete events
+    window.actionEvents = {
+       'click .update': function (e, value, row) {
+           window.location.href="/wenzhang/editPCArticle.html?id="+row.id;
+        },
+        'click .remove': function (e, value, row) {
+            if (confirm('你确定要删除么?')) {
+                $.ajax({
+                    url: '/delForWeb.action?id=' + row.id,
+                    type: 'post',
+                    success: function () {
+                        $('#tableArticle').bootstrapTable('refresh');
+                        swal({  
+            title: "温馨提示",  
+            text: "删除成功",  
+            showConfirmButton: false,  
+            timer: 2000  
+				})  
+                    },
+                    error: function () {
+                       swal({  
+            title: "温馨提示",  
+            text: "网络错误",  
+            showConfirmButton: false,  
+            timer: 2000  
+				})  
+                    }
+                })
+            }
+        }
+    };
+
+  $(document).ready(function () {
+					
+	  
+        });
+	 
+	  
+</script>
+</body>
+</html>

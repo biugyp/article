@@ -1,0 +1,282 @@
+<html>
+<head>
+    <title>患教文章</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript" charset="utf-8" src="kindeditor-all.js"></script>	
+     <script type="text/javascript" charset="utf-8" src="lang/zh-CN.js"></script>
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+<link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  <script type="text/javascript" charset="utf-8" src="jquery-1.9.1.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+      
+      <link rel="stylesheet" href="https://cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.css" />  
+        <script type="text/javascript" src="https://cdn.bootcss.com/sweetalert/1.1.3/sweetalert.min.js"></script>  
+</head>
+<body>
+ <h1 style="text-align:center">编辑患教文章</h1>
+
+<div class="container-fluid">
+<div class="row" style="display:none;">
+
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+  <div class="form-group">
+    <label for="">一级科室</label>
+    <select name="majorId" id="majorId">
+	  <option value='' >请选择</option>
+	</select>
+  </div>
+  </div>
+  <div class="col-md-2"></div>
+</div>
+<div class="row" style="display:none;">
+
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+  <div class="form-group">
+    <label for="">二级科室</label>
+   <select name="departmentId" id="departmentId">
+	  <option value='' >请选择</option>
+	</select>
+  </div>
+  </div>
+  <div class="col-md-2"></div>
+</div>
+<div class="row">
+
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+  <div class="form-group">
+    <label for="exampleInput">标题</label>
+    <input type="text" class="form-control" name="articleName" required id="articleName" placeholder="请输入文章标题">
+  </div>
+  </div>
+  <div class="col-md-2"></div>
+</div>
+<div class="row">
+
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+  <div class="form-group">
+    <label for="exampleInput">内容</label>
+   <textarea id="editor_id" name="articleContent" required style="width:100%;height:300px;">  
+         
+    </textarea> 
+  </div>
+  </div>
+  <div class="col-md-2"></div>
+</div>
+ <div class="row">
+
+  <div class="col-md-2"></div>
+  <div class="col-md-8" style="text-align:center">
+   <button id="submitbtn"  class="btn btn-default">提交</button>
+   <button id="returnback"  class="btn btn-default">返回</button>
+    </div>
+  <div class="col-md-2"></div>
+</div>
+</div>
+
+<script>
+	KindEditor.ready(function(K) {  
+             window.editor = K.create('#editor_id',{
+			 items:['source', '|', 'undo', 'redo', '|', 'preview', 'print', 'template', 'code', 'cut', 'copy', 'paste',
+        'plainpaste', 'wordpaste', '|', 'justifyleft', 'justifycenter', 'justifyright',
+        'justifyfull', 'insertorderedlist', 'insertunorderedlist', 'indent', 'outdent', 'subscript',
+        'superscript', 'clearhtml', 'quickformat', 'selectall', '|', 'fullscreen', '/',
+        'formatblock', 'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold',
+        'italic', 'underline', 'strikethrough', 'lineheight', 'removeformat', '|', 'image', 'multiimage',
+         'table', 'hr', 'emoticons', 'baidumap', 'pagebreak',
+        'anchor',  '|', 'about'],
+			 uploadJson:"/common/uploadImg.action"
+			 });  
+			  initData();
+			   getmajorId();
+			}); 
+
+	function GetQueryString(name)
+    {
+        var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if(r!=null)
+            return  unescape(r[2]); return null;
+    }
+    var Id=GetQueryString("id");
+    var accountId=GetQueryString("accountId");
+    
+	  function	initData()
+		{
+			  $.ajax({
+                url: "/findById.action?id="+Id,
+                type: "get",
+                dataType: 'json',
+				async:false,
+                success: function (data) {
+                    console.log(data);
+					majorIdTmp =data.followupArticle.majorDepartmentId;
+					departmentIdTmp=data.followupArticle.departmentId;
+                   $('#articleName').val(data.followupArticle.articleName);
+				  console.log(departmentIdTmp);
+				editor.html(data.followupArticle.articleContent);
+                },
+                error: function (e) {
+                   swal({  
+            title: "温馨提示",  
+            text: "网络错误",  
+            showConfirmButton: false,  
+            timer: 3000  
+				})  
+                }
+            });
+		}	  
+	
+	 var majorIdTmp =0;
+	 var departmentIdTmp =0;
+	 
+    var accountId=GetQueryString("accountId");
+		function getmajorId()
+		{
+		   
+		  $.ajax({
+                url: "/getMajorDepartment.action",
+                type: "post",	
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);
+					var optionHtml ="";
+					for(var i in data.datas)
+					{
+						if(data.datas[i].id ==majorIdTmp )
+						{
+						optionHtml += "<option value='"+data.datas[i].id+"' selected >"+data.datas[i].name+"</option>";
+						}
+						else
+						optionHtml += "<option value='"+data.datas[i].id+"' >"+data.datas[i].name+"</option>";
+					}
+					$('#majorId').append(optionHtml)
+					getdepartmentId(majorIdTmp);
+                },
+                error: function (e) {
+                   swal({  
+						title: "温馨提示",  
+						text: "网络错误",  
+						showConfirmButton: false,  
+						timer: 3000  
+						})  
+                }
+            });
+		
+		}
+  function getdepartmentId(majorId)
+		{
+		 
+		  $.ajax({
+                url: "/getDepartmentList.action?majorId="+majorId,
+                type: "post",	
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data);
+					var optionHtml ="";
+					for(var i in data.datas)
+					{
+						if(data.datas[i].id ==departmentIdTmp )
+						{
+						optionHtml += "<option value='"+data.datas[i].id+"' selected >"+data.datas[i].name+"</option>";
+						}
+						else
+						optionHtml += "<option value="+data.datas[i].id+" >"+data.datas[i].name+"</option>";
+					}
+					$('#departmentId').append(optionHtml)
+                },
+                error: function (e) {
+                   swal({  
+						title: "温馨提示",  
+						text: "网络错误",  
+						showConfirmButton: false,  
+						timer: 3000  
+						})  
+                }
+            });
+		
+		}	
+		
+  $(document).ready(function () {
+    console.log("fsdfsdfds");
+		
+			
+			 $("#majorId").on('change',function(e){
+	    e.preventDefault();
+		var majorId = $("#majorId").val();
+		
+		if(!!majorId && majorId !='')
+		{
+				$("#departmentId").html('');
+			getdepartmentId(majorId);
+		}
+	 
+	 });
+			
+			$('#returnback').on('click',function(e){
+		  e.preventDefault();
+	      window.location.href="/wenzhang/listPCArticle.html"
+	});		
+			
+	  $('#submitbtn').on('click',function(e){
+				   e.preventDefault();
+			
+	        var articleName =  $('#articleName').val();
+			var articleContent = editor.html();;
+			var majorId = $('#majorId').val();
+			var departmentId = $('#departmentId').val();
+	        if(articleName.trim()=='' || articleContent.trim()=='' )
+			{
+				 swal({  
+            title: "温馨提示",  
+            text: "请填写必填项",  
+            showConfirmButton: false,  
+            timer: 3000  
+				})  
+				return ;
+			}
+	     $.ajax({
+                url: "/update.action",
+                type: "post",
+                data: {
+                    articleName: articleName,
+					   articleContent:articleContent,
+					   id:Id,
+					  // majorId:	majorId,
+					//departmentId:	departmentId
+                },
+                dataType: 'json',
+                success: function (data) {
+                   
+					swal({  
+				title: "温馨提示",  
+				text: "编辑成功",  
+				showConfirmButton: false,  
+				timer: 2000  
+				})  
+				window.location.href="/wenzhang/listPCArticle.html?accountId="+accountId;
+                },
+                error: function (e) {
+                   swal({  
+            title: "温馨提示",  
+            text: "网络错误",  
+            showConfirmButton: false,  
+            timer: 2000  
+				})  
+                }
+            });
+	  });
+	  
+        });
+	 
+	  
+</script>
+</body>
+</html>
